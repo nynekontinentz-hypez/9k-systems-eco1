@@ -2,6 +2,9 @@
  * Centralised env access. Reads are lazy and never throw at import time, so
  * `next build` succeeds with placeholder values. Call `requireEnv` inside a
  * request handler when you actually need a real key at runtime.
+ *
+ * Secret VALUES never live in this file. They come from the environment:
+ * .env.local for local dev, Vercel Environment Variables in production.
  */
 
 export const env = {

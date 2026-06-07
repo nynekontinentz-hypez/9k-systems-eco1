@@ -8,8 +8,8 @@ export function stripe(): Stripe | null {
   if (!isStripeConfigured) return null;
   if (stripeSingleton) return stripeSingleton;
   stripeSingleton = new Stripe(env.stripeSecret, {
-    // Matches the stripe@17 SDK's pinned version. Bump deliberately on upgrade.
-    apiVersion: "2024-10-28.acacia",
+    // Must match the installed stripe SDK's pinned API version literal.
+    apiVersion: "2025-02-24.acacia",
     appInfo: { name: "9K Systems", version: "0.1.0" },
   });
   return stripeSingleton;
