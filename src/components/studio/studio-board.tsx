@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, ArrowRight, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -24,10 +25,12 @@ export function StudioBoard({ initial }: { initial: StudioProject[] }) {
   const [channel, setChannel] = useState("");
   const [pending, startTransition] = useTransition();
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
     if (title.trim().length < 2) return;
+    setError(null);
     const res = await fetch("/api/studio", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -37,17 +40,21 @@ export function StudioBoard({ initial }: { initial: StudioProject[] }) {
       setTitle("");
       setChannel("");
       startTransition(() => router.refresh());
+    } else {
+      setError("Couldn't add that project. Please try again.");
     }
   }
 
   async function advance(id: string, status: StudioStage) {
     setBusyId(id);
+    setError(null);
     const res = await fetch("/api/studio", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, status }),
     });
     if (res.ok) startTransition(() => router.refresh());
+    else setError("Couldn't move that project. Please try again.");
     setBusyId(null);
   }
 
@@ -73,6 +80,12 @@ export function StudioBoard({ initial }: { initial: StudioProject[] }) {
         </Button>
       </form>
 
+      {error && (
+        <p className="px-1 text-xs text-status-error" role="alert">
+          {error}
+        </p>
+      )}
+
       <div className="grid gap-3 lg:grid-cols-5">
         {STUDIO_STAGES.map((stage) => {
           const items = initial.filter((p) => p.status === stage.key);
@@ -94,9 +107,12 @@ export function StudioBoard({ initial }: { initial: StudioProject[] }) {
                       key={p.id}
                       className="flex flex-col gap-2 rounded-lg border border-border-subtle bg-neutral-bg3 p-3"
                     >
-                      <span className="text-sm text-text-primary">
+                      <Link
+                        href={`/app/studio/${p.id}`}
+                        className="text-sm text-text-primary hover:text-brand-light"
+                      >
                         {p.title}
-                      </span>
+                      </Link>
                       {p.channel && (
                         <span className="text-xs text-brand-light">
                           {p.channel}

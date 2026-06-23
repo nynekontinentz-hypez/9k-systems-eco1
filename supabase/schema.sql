@@ -77,11 +77,30 @@ create table if not exists public.studio_projects (
   title         text not null,
   channel       text,
   status        text not null default 'idea', -- idea|script|assets|render|published|archived
+  idea          text,
+  hook          text,
+  titles        jsonb,
+  script        text,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
 create index if not exists studio_org_idx    on public.studio_projects (clerk_org_id);
 create index if not exists studio_status_idx on public.studio_projects (status);
+
+-- Studio production assets (files live in the deliverables bucket) ------------
+create table if not exists public.studio_assets (
+  id            uuid primary key default gen_random_uuid(),
+  project_id    uuid not null references public.studio_projects(id) on delete cascade,
+  clerk_org_id  text,
+  created_by    text,
+  kind          text not null default 'other',  -- voiceover|thumbnail|broll|final|other
+  name          text not null,
+  storage_path  text not null,
+  size_bytes    bigint,
+  created_at    timestamptz not null default now()
+);
+create index if not exists studio_assets_project_idx on public.studio_assets (project_id);
+create index if not exists studio_assets_org_idx     on public.studio_assets (clerk_org_id);
 
 -- Lock everything to the service role ----------------------------------------
 alter table public.waitlist         enable row level security;
@@ -90,3 +109,4 @@ alter table public.entitlements     enable row level security;
 alter table public.purchases       enable row level security;
 alter table public.assets          enable row level security;
 alter table public.studio_projects enable row level security;
+alter table public.studio_assets   enable row level security;

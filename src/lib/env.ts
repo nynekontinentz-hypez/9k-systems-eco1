@@ -16,6 +16,10 @@ export const env = {
   stripeSecret: process.env.STRIPE_SECRET_KEY ?? "",
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  // Studio AI generator (provider-agnostic): gemini | groq | openai | anthropic
+  studioAiProvider: (process.env.STUDIO_AI_PROVIDER ?? "gemini").toLowerCase(),
+  studioAiKey: process.env.STUDIO_AI_API_KEY ?? "",
+  studioAiModel: process.env.STUDIO_AI_MODEL ?? "",
 } as const;
 
 /** Throw a clear error at runtime if a required key is missing. */
@@ -34,3 +38,4 @@ export const isSupabaseConfigured = Boolean(
   env.supabaseUrl && env.supabaseServiceRole,
 );
 export const isStripeConfigured = Boolean(env.stripeSecret);
+export const isStudioAiConfigured = Boolean(env.studioAiKey);
