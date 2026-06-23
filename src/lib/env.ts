@@ -17,14 +17,42 @@ export const env = {
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   // Studio AI generator (provider-agnostic): gemini | groq | openai | anthropic
+  // "Fast" tier = the default supplied key. "Premium" tier is optional; if its
+  // key is unset, Premium transparently falls back to Fast.
   studioAiProvider: (process.env.STUDIO_AI_PROVIDER ?? "gemini").toLowerCase(),
   studioAiKey: process.env.STUDIO_AI_API_KEY ?? "",
   studioAiModel: process.env.STUDIO_AI_MODEL ?? "",
+  studioAiPremiumProvider: (
+    process.env.STUDIO_AI_PREMIUM_PROVIDER ?? ""
+  ).toLowerCase(),
+  studioAiPremiumKey: process.env.STUDIO_AI_PREMIUM_API_KEY ?? "",
+  studioAiPremiumModel: process.env.STUDIO_AI_PREMIUM_MODEL ?? "",
+  // Master key for encrypting BYOK provider keys at rest (AES-256-GCM).
+  // 32 bytes, supplied as 64 hex chars or base64. BYOK is disabled if unset.
+  studioAiEncKey: process.env.STUDIO_AI_ENC_KEY ?? "",
+  // Monthly per-tenant cap on SUPPLIED-key generations. BYOK is never capped.
+  studioAiMonthlyCap: Number(process.env.STUDIO_AI_MONTHLY_CAP ?? "30"),
+  // Comma-separated entitlement SKUs that unlock supplied AI. Empty = any
+  // active entitlement qualifies.
+  studioAiGateSkus: (process.env.STUDIO_AI_GATE_SKUS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean),
+  // Comma-separated Clerk user ids that bypass the gate AND the cap (operators).
+  studioAiUnlimitedUsers: (process.env.STUDIO_AI_UNLIMITED_USERS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean),
 } as const;
 
-/** Throw a clear error at runtime if a required key is missing. */
-export function requireEnv<K extends keyof typeof env>(key: K): string {
-  const value = env[key];
+/** Keys of `env` whose value is a plain string (the secrets/URLs). */
+type StringEnvKey = {
+  [K in keyof typeof env]: (typeof env)[K] extends string ? K : never;
+}[keyof typeof env];
+
+/** Throw a clear error at runtime if a required string key is missing. */
+export function requireEnv<K extends StringEnvKey>(key: K): string {
+  const value = env[key] as string;
   if (!value) {
     throw new Error(
       `Missing environment variable for "${String(key)}". Set it in .env.local (see .env.example).`,
@@ -38,4 +66,8 @@ export const isSupabaseConfigured = Boolean(
   env.supabaseUrl && env.supabaseServiceRole,
 );
 export const isStripeConfigured = Boolean(env.stripeSecret);
+/** Fast/supplied tier is the baseline — Studio AI is "on" when it exists. */
 export const isStudioAiConfigured = Boolean(env.studioAiKey);
+export const isStudioAiPremiumConfigured = Boolean(env.studioAiPremiumKey);
+/** BYOK requires the encryption master key, or we'd be storing keys in plaintext. */
+export const isByokConfigured = Boolean(env.studioAiEncKey);

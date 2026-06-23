@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { PageHeader } from "@/components/layout/page-header";
 import { SetupHint } from "@/components/setup-hint";
 import { StudioBoard, type StudioProject } from "@/components/studio/studio-board";
+import { StudioAiSettings } from "@/components/studio/studio-ai-settings";
 import { supabaseAdmin } from "@/lib/supabase";
 import { isStudioStage } from "@/lib/studio";
 
@@ -40,6 +41,8 @@ export default async function StudioPage() {
           board works the moment the <code>studio_projects</code> table exists.
         </SetupHint>
       )}
+
+      {db && <StudioAiSettings />}
 
       <StudioBoard initial={projects} />
     </>

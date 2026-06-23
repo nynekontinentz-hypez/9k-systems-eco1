@@ -1,9 +1,9 @@
-import { env } from "./env";
-
 /**
- * Provider-agnostic text generation for the Studio. One env var picks the
- * provider; the same prompt runs against Gemini, Groq, OpenAI, or Anthropic.
- * Defaults favour the free tiers (Gemini, then Groq).
+ * Provider-agnostic text generation for the Studio. The caller supplies a
+ * resolved config (provider + key + model); the same prompt runs against
+ * Gemini, Groq, OpenAI, or Anthropic. Config resolution (supplied tier vs BYOK,
+ * gating, and the usage cap) lives in studio-ai-config.ts — this module only
+ * knows how to call a model.
  */
 
 export type ScriptDraft = {
@@ -12,15 +12,23 @@ export type ScriptDraft = {
   script: string;
 };
 
-const DEFAULT_MODELS: Record<string, string> = {
+/** A fully-resolved generation target. No env reads happen in this module. */
+export type AiConfig = {
+  provider: string; // gemini | groq | openai | anthropic
+  apiKey: string;
+  model: string;
+};
+
+export const DEFAULT_MODELS: Record<string, string> = {
   gemini: "gemini-2.0-flash",
   groq: "llama-3.3-70b-versatile",
   openai: "gpt-4o-mini",
   anthropic: "claude-3-5-haiku-latest",
 };
 
-function model(): string {
-  return env.studioAiModel || DEFAULT_MODELS[env.studioAiProvider] || "gemini-2.0-flash";
+/** Resolve a usable model name for a provider, falling back to its default. */
+export function resolveModel(provider: string, model?: string | null): string {
+  return (model && model.trim()) || DEFAULT_MODELS[provider] || "gemini-2.0-flash";
 }
 
 async function withTimeout(input: RequestInfo, init: RequestInit, ms = 45000) {
@@ -33,17 +41,24 @@ async function withTimeout(input: RequestInfo, init: RequestInit, ms = 45000) {
   }
 }
 
-/** Run the configured model; returns raw text (expected to be JSON). */
-async function callModel(system: string, user: string): Promise<string> {
-  const key = env.studioAiKey;
-  if (!key) throw new Error("Studio AI is not configured (set STUDIO_AI_API_KEY).");
-  const provider = env.studioAiProvider;
+/** Run the given model; returns raw text (expected to be JSON). */
+async function callModel(
+  cfg: AiConfig,
+  system: string,
+  user: string,
+): Promise<string> {
+  const key = cfg.apiKey;
+  if (!key) throw new Error("Studio AI is not configured (no API key).");
+  const provider = cfg.provider;
+  const modelName = resolveModel(provider, cfg.model);
 
   if (provider === "gemini") {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model()}:generateContent?key=${key}`;
+    // Key goes in a header, not the URL query — query strings are far more
+    // likely to be captured in egress/proxy logs, which matters for BYOK keys.
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
     const res = await withTimeout(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: system }] },
         contents: [{ role: "user", parts: [{ text: user }] }],
@@ -64,7 +79,7 @@ async function callModel(system: string, user: string): Promise<string> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: model(),
+        model: modelName,
         max_tokens: 4096,
         temperature: 0.85,
         system,
@@ -88,7 +103,7 @@ async function callModel(system: string, user: string): Promise<string> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: model(),
+      model: modelName,
       temperature: 0.85,
       response_format: { type: "json_object" },
       messages: [
@@ -124,6 +139,7 @@ function parseDraft(raw: string): ScriptDraft {
 
 /** Generate a hook, title options, and a voiceover script from a one-line idea. */
 export async function generateScript(
+  cfg: AiConfig,
   idea: string,
   channel?: string | null,
 ): Promise<ScriptDraft> {
@@ -144,7 +160,7 @@ export async function generateScript(
     .filter(Boolean)
     .join("\n");
 
-  const raw = await callModel(system, user);
+  const raw = await callModel(cfg, system, user);
   if (!raw) throw new Error("The model returned an empty response.");
   return parseDraft(raw);
 }

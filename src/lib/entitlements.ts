@@ -40,6 +40,40 @@ export async function hasEntitlement({
   );
 }
 
+/**
+ * True when the tenant holds ANY active, unexpired entitlement (optionally
+ * restricted to a set of SKUs). Used to gate supplied-key Studio AI behind a
+ * paid plan. Fails closed.
+ */
+export async function hasAnyActiveEntitlement(
+  scope: { userId?: string | null; orgId?: string | null },
+  skus?: string[],
+): Promise<boolean> {
+  const db = supabaseAdmin();
+  if (!db) return false;
+
+  // Scope to a SINGLE tenant — the active org, or (no org) the user — never a
+  // union across tenants (per CLAUDE.md). Failing this scope = no access.
+  if (!scope.orgId && !scope.userId) return false;
+  let query = db
+    .from("entitlements")
+    .select("id, sku, expires_at")
+    .eq("status", "active")
+    .limit(100);
+  query = scope.orgId
+    ? query.eq("clerk_org_id", scope.orgId)
+    : query.eq("clerk_user_id", scope.userId as string);
+  if (skus && skus.length > 0) query = query.in("sku", skus);
+
+  const { data, error } = await query;
+  if (error || !data) return false;
+
+  const now = Date.now();
+  return data.some(
+    (row) => !row.expires_at || new Date(row.expires_at).getTime() > now,
+  );
+}
+
 /** Grant (or re-activate) an entitlement. Used by the Stripe webhook. */
 export async function grantEntitlement(params: {
   userId?: string | null;

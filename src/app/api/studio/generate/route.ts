@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { loadProjectScoped } from "@/lib/studio-server";
 import { generateScript } from "@/lib/studio-ai";
-import { isStudioAiConfigured } from "@/lib/env";
+import {
+  resolveAiConfig,
+  recordUsage,
+  AiResolveError,
+} from "@/lib/studio-ai-config";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -10,13 +14,6 @@ export const maxDuration = 60;
 export async function POST(req: Request) {
   const { userId, orgId } = await auth();
   if (!userId) return NextResponse.json({ error: "Sign in." }, { status: 401 });
-
-  if (!isStudioAiConfigured) {
-    return NextResponse.json(
-      { error: "Studio AI isn't configured. Add STUDIO_AI_API_KEY." },
-      { status: 503 },
-    );
-  }
 
   let projectId: unknown;
   let idea: unknown;
@@ -46,8 +43,19 @@ export async function POST(req: Request) {
     );
   }
 
+  // Resolve which AI config to use (supplied tier vs BYOK), enforcing the
+  // entitlement gate and monthly cap before we spend anything.
+  let resolved;
   try {
-    const draft = await generateScript(ideaText, project.channel);
+    resolved = await resolveAiConfig({ userId, orgId });
+  } catch (e) {
+    if (e instanceof AiResolveError)
+      return NextResponse.json({ error: e.message, code: e.code }, { status: e.status });
+    return NextResponse.json({ error: "AI not available." }, { status: 503 });
+  }
+
+  try {
+    const draft = await generateScript(resolved.config, ideaText, project.channel);
     await db
       .from("studio_projects")
       .update({
@@ -58,6 +66,8 @@ export async function POST(req: Request) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", project.id);
+    // Only count successful supplied-key generations against the cap.
+    if (resolved.metered) await recordUsage({ userId, orgId }, resolved.period);
     return NextResponse.json({ ok: true, draft });
   } catch (e) {
     return NextResponse.json(
