@@ -34,7 +34,7 @@ export default function ClientsPage() {
           <CardContent className="flex flex-col gap-3 text-sm text-text-secondary">
             <p>
               Create one organization per client. Switch the active client from
-              the switcher in the sidebar — everything you see follows it.
+              the switcher in the top nav — everything you see follows it.
             </p>
             <p>
               Invite the client&apos;s people into their org so they get their

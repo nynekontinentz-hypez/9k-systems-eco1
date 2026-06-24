@@ -43,6 +43,10 @@ export const env = {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean),
+  // External render worker (open-source TTS/video pipeline). The Next app
+  // orchestrates; the worker does the heavy CPU work off-platform.
+  workerUrl: (process.env.STUDIO_WORKER_URL ?? "").replace(/\/+$/, ""),
+  workerSecret: process.env.STUDIO_WORKER_SECRET ?? "",
 } as const;
 
 /** Keys of `env` whose value is a plain string (the secrets/URLs). */
@@ -71,3 +75,5 @@ export const isStudioAiConfigured = Boolean(env.studioAiKey);
 export const isStudioAiPremiumConfigured = Boolean(env.studioAiPremiumKey);
 /** BYOK requires the encryption master key, or we'd be storing keys in plaintext. */
 export const isByokConfigured = Boolean(env.studioAiEncKey);
+/** The render worker is wired when we know its URL and share a secret with it. */
+export const isWorkerConfigured = Boolean(env.workerUrl && env.workerSecret);

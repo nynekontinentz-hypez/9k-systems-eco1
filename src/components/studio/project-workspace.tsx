@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -10,6 +10,7 @@ import {
   Upload,
   Download,
   Check,
+  AudioLines,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,10 +60,12 @@ export function ProjectWorkspace({
   project,
   initialAssets,
   aiConfigured,
+  renderConfigured,
 }: {
   project: WorkspaceProject;
   initialAssets: Asset[];
   aiConfigured: boolean;
+  renderConfigured: boolean;
 }) {
   const [idea, setIdea] = useState(project.idea ?? "");
   const [hook, setHook] = useState(project.hook ?? "");
@@ -75,6 +78,73 @@ export function ProjectWorkspace({
   const [assets, setAssets] = useState<Asset[]>(initialAssets);
   const [uploadKind, setUploadKind] = useState("voiceover");
   const [uploading, setUploading] = useState(false);
+  const [voicing, setVoicing] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState<string | null>(null);
+  // Stop the poll loop from running (and calling setState) after unmount.
+  const aliveRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      aliveRef.current = false;
+    };
+  }, []);
+
+  async function refreshAssets() {
+    const listRes = await fetch(`/api/studio/asset?projectId=${project.id}`);
+    const list = await listRes.json();
+    setAssets(list.assets ?? []);
+  }
+
+  // Kick off a voiceover render, then poll the job until it finishes.
+  async function generateVoiceover() {
+    setVoicing(true);
+    setError(null);
+    setVoiceStatus("Saving script…");
+    try {
+      // Persist current edits so the worker narrates exactly what's on screen.
+      const saveRes = await fetch("/api/studio/update", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: project.id, idea, hook, titles, script }),
+      });
+      if (!saveRes.ok) {
+        const d = await saveRes.json().catch(() => ({}));
+        throw new Error(d.error ?? "Couldn't save the script before rendering.");
+      }
+      setVoiceStatus("Queued…");
+      const res = await fetch("/api/studio/render", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId: project.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Couldn't start voiceover.");
+
+      const jobId = data.jobId as string;
+      setVoiceStatus("Rendering…");
+      // Poll up to ~5 minutes (100 × 3s). Bails out if the user navigates away.
+      for (let i = 0; i < 100; i++) {
+        await new Promise((r) => setTimeout(r, 3000));
+        if (!aliveRef.current) return; // unmounted; job still resolves server-side
+        const sRes = await fetch(`/api/studio/render?jobId=${jobId}`);
+        const s = await sRes.json();
+        if (s.status === "done") {
+          setVoiceStatus(null);
+          await refreshAssets();
+          return;
+        }
+        if (s.status === "failed") {
+          throw new Error(s.error ?? "Voiceover render failed.");
+        }
+      }
+      throw new Error("Voiceover is taking longer than expected — check back shortly.");
+    } catch (e) {
+      if (!aliveRef.current) return;
+      setError(e instanceof Error ? e.message : "Voiceover failed.");
+    } finally {
+      setVoicing(false);
+      setVoiceStatus(null);
+    }
+  }
 
   async function generate() {
     setGenerating(true);
@@ -158,9 +228,7 @@ export function ProjectWorkspace({
       const reg = await regRes.json();
       if (!regRes.ok) throw new Error(reg.error ?? "Could not register file.");
 
-      const listRes = await fetch(`/api/studio/asset?projectId=${project.id}`);
-      const list = await listRes.json();
-      setAssets(list.assets ?? []);
+      await refreshAssets();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed.");
     } finally {
@@ -293,6 +361,31 @@ export function ProjectWorkspace({
             <CardTitle>Assets</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
+            {/* Generate a voiceover from the script via the render worker. */}
+            <div className="flex flex-col gap-1.5 rounded-lg border border-border-subtle bg-neutral-bg2 p-3">
+              <Button
+                size="sm"
+                onClick={generateVoiceover}
+                disabled={
+                  voicing || !renderConfigured || (script?.trim().length ?? 0) < 20
+                }
+              >
+                {voicing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <AudioLines className="h-4 w-4" />
+                )}
+                {voicing ? voiceStatus ?? "Working…" : "Generate voiceover"}
+              </Button>
+              <span className="text-xs text-text-muted">
+                {!renderConfigured
+                  ? "Render worker not connected yet."
+                  : (script?.trim().length ?? 0) < 20
+                    ? "Add a script first, then generate a voiceover."
+                    : "Narrates the saved script (Kokoro TTS) into an MP3 asset."}
+              </span>
+            </div>
+
             <div className="flex flex-col gap-2">
               <select
                 className="h-9 rounded-lg border border-border-default bg-neutral-bg3 px-2 text-sm text-text-primary"

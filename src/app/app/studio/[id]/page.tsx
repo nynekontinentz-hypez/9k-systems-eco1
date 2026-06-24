@@ -5,7 +5,7 @@ import {
   ProjectWorkspace,
   type WorkspaceProject,
 } from "@/components/studio/project-workspace";
-import { isStudioAiConfigured } from "@/lib/env";
+import { isStudioAiConfigured, isByokConfigured, isWorkerConfigured } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +42,8 @@ export default async function StudioProjectPage({
     <ProjectWorkspace
       project={wp}
       initialAssets={assets ?? []}
-      aiConfigured={isStudioAiConfigured}
+      aiConfigured={isStudioAiConfigured || isByokConfigured}
+      renderConfigured={isWorkerConfigured}
     />
   );
 }
