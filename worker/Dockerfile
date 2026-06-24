@@ -1,17 +1,26 @@
-# 9K Systems — Studio render worker (CPU-only; no GPU required for Kokoro).
-FROM python:3.12-slim
+# 9K Systems — Studio render worker (Piper TTS; CPU + low memory, fits ~512MB).
+# Python 3.11 — piper-phonemize wheels have the best coverage here.
+FROM python:3.11-slim
 
-# ffmpeg for audio encoding; espeak-ng is Kokoro's phonemizer backend;
-# libsndfile1 backs soundfile.
+# ffmpeg for audio encoding; espeak-ng-data backs Piper's phonemizer; curl to
+# fetch the voice model at build time (so there's no slow first-request download).
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends ffmpeg espeak-ng libsndfile1 \
+  && apt-get install -y --no-install-recommends ffmpeg espeak-ng curl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-# Install the CPU-only torch wheel first so kokoro doesn't pull a multi-GB CUDA build.
-RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu "torch==2.4.1"
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+# Fail the build immediately if Piper didn't install cleanly (its deps are fragile).
+RUN python -c "import piper" && piper --help >/dev/null 2>&1
+
+# Bake a default Piper voice (en_US-lessac-medium ~63MB) into the image.
+RUN mkdir -p /app/voices \
+  && curl -fsSL -o /app/voices/en_US-lessac-medium.onnx \
+     "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx?download=true" \
+  && curl -fsSL -o /app/voices/en_US-lessac-medium.onnx.json \
+     "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json?download=true"
+
 COPY main.py .
 
 ENV PORT=8080

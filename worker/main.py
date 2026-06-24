@@ -1,13 +1,15 @@
 """
 9K Systems — Studio render worker (Phase 1: voiceover).
 
-Open-source, commercial-safe stack: Kokoro TTS (Apache-2.0) -> ffmpeg -> upload
-to a Supabase signed URL -> signed callback to the Next.js app.
+Open-source, commercial-safe, low-memory stack: Piper TTS (MIT, onnxruntime —
+no torch, fits in ~512MB) -> ffmpeg -> upload to a Supabase signed URL ->
+signed callback to the Next.js app.
 
 The Next app dispatches a job here (authenticated with STUDIO_WORKER_SECRET).
-We synthesize audio, upload it to the single signed path the app minted, then
-POST a callback whose body is HMAC-signed with the same secret. We never receive
-or hold any Supabase service credentials — only a one-path, single-use token.
+We synthesize audio with a voice baked into the image, upload it to the single
+signed path the app minted, then POST a callback whose body is HMAC-signed with
+the same secret. We never hold any Supabase service credentials — only a
+one-path, single-use token.
 """
 
 import hashlib
@@ -18,26 +20,14 @@ import subprocess
 import tempfile
 import time
 
-import numpy as np
 import requests
-import soundfile as sf
-from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request, status
 
 SECRET = os.environ.get("STUDIO_WORKER_SECRET", "")
+# Piper voice model baked into the image (see Dockerfile). Override with PIPER_MODEL.
+VOICE_MODEL = os.environ.get("PIPER_MODEL", "/app/voices/en_US-lessac-medium.onnx")
+
 app = FastAPI(title="9K Studio Render Worker")
-
-# Kokoro pipeline is lazy-loaded on first job so the container boots fast.
-_pipeline = None
-
-
-def get_pipeline():
-    global _pipeline
-    if _pipeline is None:
-        from kokoro import KPipeline  # imported here to defer the heavy load
-
-        # 'a' = American English. Weights download on first use (~330MB).
-        _pipeline = KPipeline(lang_code="a")
-    return _pipeline
 
 
 @app.get("/health")
@@ -45,7 +35,7 @@ def health():
     return {"ok": True}
 
 
-@app.post("/jobs")
+@app.post("/jobs", status_code=status.HTTP_202_ACCEPTED)
 async def create_job(
     request: Request,
     background: BackgroundTasks,
@@ -64,7 +54,7 @@ async def create_job(
 def process_job(p: dict):
     job_id = p["jobId"]
     try:
-        mp3_bytes = synth_mp3(p["text"], p.get("voice") or "af_heart")
+        mp3_bytes = synth_mp3(p["text"])
         upload_signed(
             p["supabaseUrl"], p["bucket"], p["uploadPath"], p["uploadToken"], mp3_bytes
         )
@@ -81,21 +71,19 @@ def process_job(p: dict):
         })
 
 
-def synth_mp3(text: str, voice: str) -> bytes:
-    """Kokoro -> 24kHz wav -> mp3 (128k). Returns mp3 bytes."""
-    pipeline = get_pipeline()
-    chunks = []
-    for _gs, _ps, audio in pipeline(text, voice=voice):
-        arr = audio.detach().cpu().numpy() if hasattr(audio, "detach") else np.asarray(audio)
-        chunks.append(arr.astype(np.float32))
-    if not chunks:
-        raise RuntimeError("TTS produced no audio")
-    full = np.concatenate(chunks)
-
+def synth_mp3(text: str) -> bytes:
+    """Piper (stdin text) -> wav -> mp3 (128k). Returns mp3 bytes."""
     with tempfile.TemporaryDirectory() as d:
         wav_path = os.path.join(d, "out.wav")
         mp3_path = os.path.join(d, "out.mp3")
-        sf.write(wav_path, full, 24000)
+        # Piper CLI: reads text on stdin, writes a wav with -f. Stable interface.
+        synth = subprocess.run(
+            ["piper", "-m", VOICE_MODEL, "-f", wav_path],
+            input=text.encode("utf-8"),
+            capture_output=True,
+        )
+        if synth.returncode != 0 or not os.path.exists(wav_path):
+            raise RuntimeError(f"Piper failed: {synth.stderr.decode('utf-8', 'ignore')[:300]}")
         subprocess.run(
             ["ffmpeg", "-y", "-i", wav_path, "-b:a", "128k", mp3_path],
             check=True,
@@ -122,10 +110,9 @@ def upload_signed(supabase_url: str, bucket: str, path: str, token: str, data: b
 def callback(callback_url: str, body: dict):
     """POST an HMAC-signed callback the Next app can verify.
 
-    We sign and send the *exact same bytes* (UTF-8) so the app's HMAC over the
-    raw request body matches even when the payload contains non-ASCII (e.g. a
-    Unicode error message). Retries a few times so a transient blip doesn't
-    strand the job.
+    Sign and send the exact same UTF-8 bytes so the app's HMAC over the raw
+    request body matches. Retry a few times so a transient blip doesn't strand
+    the job.
     """
     raw_bytes = json.dumps(body, separators=(",", ":")).encode("utf-8")
     sig = hmac.new(SECRET.encode("utf-8"), raw_bytes, hashlib.sha256).hexdigest()
@@ -139,5 +126,5 @@ def callback(callback_url: str, body: dict):
             last = f"{res.status_code}: {res.text[:200]}"
         except Exception as e:  # noqa: BLE001
             last = str(e)
-        time.sleep(2 ** attempt)  # 1, 2, 4, 8s backoff
+        time.sleep(2 ** attempt)
     print(f"callback failed after retries for job: {last}", flush=True)

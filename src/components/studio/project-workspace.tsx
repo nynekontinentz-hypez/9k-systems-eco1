@@ -382,7 +382,7 @@ export function ProjectWorkspace({
                   ? "Render worker not connected yet."
                   : (script?.trim().length ?? 0) < 20
                     ? "Add a script first, then generate a voiceover."
-                    : "Narrates the saved script (Kokoro TTS) into an MP3 asset."}
+                    : "Narrates the saved script into an MP3 voiceover."}
               </span>
             </div>
 

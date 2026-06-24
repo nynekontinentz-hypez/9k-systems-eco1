@@ -1,8 +1,10 @@
 # Studio render worker
 
 Phase 1 of the open-source faceless-video pipeline: turns a project's script into
-an MP3 **voiceover** using **Kokoro** (Apache-2.0 TTS, CPU-only) → ffmpeg → uploads
-to your Supabase `deliverables` bucket → signed callback to the app.
+an MP3 **voiceover** using **Piper** (MIT TTS, onnxruntime — no torch, fits in
+~512MB) → ffmpeg → uploads to your Supabase `deliverables` bucket → signed
+callback to the app. A voice (en_US-lessac-medium) is baked into the image, so
+there's no slow first-request model download.
 
 The Next.js app (`/api/studio/render`) orchestrates; this service does the heavy work
 off-platform (it can't run inside Vercel). It holds **no Supabase credentials** — the
@@ -23,8 +25,9 @@ docker run -p 8080:8080 -e STUDIO_WORKER_SECRET=dev-secret studio-worker
 curl localhost:8080/health
 ```
 
-First job downloads the Kokoro weights (~330 MB), so it's slow once, then cached.
-CPU is fine; a ~700–900 word script renders in roughly 20–60s on a small instance.
+The voice is baked into the image (no runtime download). CPU-only; a ~700–900
+word script renders in a few seconds on a small instance, in ~150–250MB RAM —
+no plan upgrade needed.
 
 ## Deploy (pick any container host)
 
@@ -42,8 +45,10 @@ The app treats the feature as available only when both are set (`isWorkerConfigu
 
 ## Voices
 
-Kokoro voice ids, e.g. `af_heart` (default), `af_bella`, `am_michael`, `bf_emma`.
-The app sends a voice per job; unknown ids fail the job with a clear error.
+The image ships with one Piper voice (en_US-lessac-medium). The app may send a
+`voice` field, but Phase 1 uses the baked-in voice regardless. To swap it, bake a
+different Piper voice into the image and point `PIPER_MODEL` at it (voices:
+https://huggingface.co/rhasspy/piper-voices).
 
 ## Security notes
 
