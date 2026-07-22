@@ -23,3 +23,11 @@ export function shortDate(iso: string | number | Date) {
     year: "numeric",
   });
 }
+
+/** Client-safe random id (browser crypto, with a cheap fallback). */
+export function randomId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}

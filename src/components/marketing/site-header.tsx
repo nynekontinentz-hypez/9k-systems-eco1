@@ -15,15 +15,15 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm text-text-secondary sm:flex">
-          <a href="#platform" className="hover:text-text-primary">
+        <nav className="flex items-center gap-4 overflow-x-auto text-sm text-text-secondary sm:gap-6">
+          <a href="#audit" className="shrink-0 hover:text-text-primary">
+            AI-Rescue Audit
+          </a>
+          <a href="#platform" className="shrink-0 hover:text-text-primary">
             Platform
           </a>
-          <a href="#pricing" className="hover:text-text-primary">
-            Pricing
-          </a>
-          <a href="#studio" className="hover:text-text-primary">
-            Studio
+          <a href="#services" className="shrink-0 hover:text-text-primary">
+            Retain me
           </a>
         </nav>
 

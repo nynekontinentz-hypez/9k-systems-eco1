@@ -6,7 +6,7 @@ import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 import {
   LayoutDashboard,
   Users,
-  Clapperboard,
+  ClipboardCheck,
   CreditCard,
   Download,
 } from "lucide-react";
@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/app", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/app/clients", label: "Clients", icon: Users },
-  { href: "/app/studio", label: "Studio", icon: Clapperboard },
+  { href: "/app/audits", label: "Audits", icon: ClipboardCheck },
   { href: "/app/billing", label: "Billing", icon: CreditCard },
   { href: "/app/downloads", label: "Downloads", icon: Download },
 ];

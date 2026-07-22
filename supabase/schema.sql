@@ -177,6 +177,21 @@ create index if not exists studio_render_jobs_project_idx on public.studio_rende
 create index if not exists studio_render_jobs_org_idx     on public.studio_render_jobs (clerk_org_id);
 create index if not exists studio_render_jobs_creator_idx on public.studio_render_jobs (created_by);
 
+-- AI-Rescue Audit workspace (operator-only; scoped by created_by) ------------
+create table if not exists public.audits (
+  id           uuid primary key default gen_random_uuid(),
+  created_by   text not null,
+  client_name  text not null,
+  status       text not null default 'scheduled',  -- scheduled | in_progress | delivered
+  purchase_ref text,
+  findings     jsonb not null default '[]'::jsonb,
+  report       text,
+  notes        text,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+create index if not exists audits_creator_idx on public.audits (created_by);
+
 -- Lock everything to the service role ----------------------------------------
 alter table public.waitlist         enable row level security;
 alter table public.processed_events enable row level security;
@@ -188,3 +203,4 @@ alter table public.studio_assets   enable row level security;
 alter table public.studio_ai_settings enable row level security;
 alter table public.studio_ai_usage    enable row level security;
 alter table public.studio_render_jobs enable row level security;
+alter table public.audits            enable row level security;

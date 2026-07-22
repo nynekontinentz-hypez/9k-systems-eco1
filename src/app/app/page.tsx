@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
-import { Users, Clapperboard, CreditCard, KeyRound } from "lucide-react";
+import { ShoppingCart, CreditCard, KeyRound } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { SetupHint } from "@/components/setup-hint";
 import { Card } from "@/components/ui/card";
@@ -18,7 +18,7 @@ export default async function Overview() {
     <>
       <PageHeader
         title="Overview"
-        description="Where everything stands today — across clients and the studio."
+        description="Where everything stands today — across clients and audits."
         actions={
           <Link href="/app/clients" className={buttonVariants({ size: "sm" })}>
             Add a client
@@ -33,7 +33,7 @@ export default async function Overview() {
         </SetupHint>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-3">
         <Stat
           icon={<CreditCard className="h-4 w-4 text-brand-light" />}
           label="Revenue this month"
@@ -47,16 +47,10 @@ export default async function Overview() {
           sub="Paid access in force"
         />
         <Stat
-          icon={<Clapperboard className="h-4 w-4 text-brand-light" />}
-          label="Studio in flight"
-          value={String(stats.studioInFlight)}
-          sub="Videos not yet published"
-        />
-        <Stat
-          icon={<Users className="h-4 w-4 text-brand-light" />}
-          label="Clients"
-          value="—"
-          sub="Manage in Clients"
+          icon={<ShoppingCart className="h-4 w-4 text-brand-light" />}
+          label="Purchases this month"
+          value={String(stats.purchasesThisMonth)}
+          sub="Across clients + audits"
         />
       </div>
 
@@ -64,12 +58,12 @@ export default async function Overview() {
         <QuickLink
           href="/app/clients"
           title="Bring on a client"
-          body="Spin up an isolated workspace for an SMB, invite their team, and start billing."
+          body="Spin up an isolated workspace for an MSP-platform client, invite their team, and start billing."
         />
         <QuickLink
-          href="/app/studio"
-          title="Move a video forward"
-          body="Push the next faceless-channel idea down the pipeline toward published."
+          href="/app/audits"
+          title="Run an AI-Rescue Audit"
+          body="Track a purchased audit, capture findings, and generate the client report."
         />
       </div>
     </>

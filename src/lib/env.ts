@@ -47,6 +47,13 @@ export const env = {
   // orchestrates; the worker does the heavy CPU work off-platform.
   workerUrl: (process.env.STUDIO_WORKER_URL ?? "").replace(/\/+$/, ""),
   workerSecret: process.env.STUDIO_WORKER_SECRET ?? "",
+  // Operator Clerk user ids — the only accounts allowed into operator-only
+  // areas (the Audit workspace). Comma-separated. Empty = open to any signed-in
+  // user (fine before real clients exist; SET THIS to lock it down).
+  operatorUserIds: (process.env.OPERATOR_USER_IDS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean),
 } as const;
 
 /** Keys of `env` whose value is a plain string (the secrets/URLs). */
@@ -77,3 +84,14 @@ export const isStudioAiPremiumConfigured = Boolean(env.studioAiPremiumKey);
 export const isByokConfigured = Boolean(env.studioAiEncKey);
 /** The render worker is wired when we know its URL and share a secret with it. */
 export const isWorkerConfigured = Boolean(env.workerUrl && env.workerSecret);
+
+/**
+ * Operator-only gate. If no operator ids are configured yet, allow any
+ * signed-in user (there are no client logins in production yet) — but this
+ * should be set to the operator's Clerk id to truly lock down operator areas.
+ */
+export function isOperator(userId: string | null | undefined): boolean {
+  if (!userId) return false;
+  if (env.operatorUserIds.length === 0) return true;
+  return env.operatorUserIds.includes(userId);
+}

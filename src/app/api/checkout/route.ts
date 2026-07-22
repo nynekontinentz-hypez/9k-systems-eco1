@@ -74,7 +74,7 @@ export async function POST(req: Request) {
         ? { subscription_data: { metadata } }
         : { payment_intent_data: { metadata } }),
       success_url: `${env.appUrl}/app/billing?status=success&sku=${product.sku}`,
-      cancel_url: `${env.appUrl}/#pricing`,
+      cancel_url: `${env.appUrl}/#audit`,
     });
 
     return NextResponse.json({ url: session.url });

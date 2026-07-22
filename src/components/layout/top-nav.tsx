@@ -6,7 +6,7 @@ import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 import {
   LayoutDashboard,
   Users,
-  Clapperboard,
+  ClipboardCheck,
   CreditCard,
   Download,
   Home,
@@ -21,13 +21,14 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/app", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/app/clients", label: "Clients", icon: Users },
-  { href: "/app/studio", label: "Studio", icon: Clapperboard },
+  { href: "/app/audits", label: "Audits", icon: ClipboardCheck },
   { href: "/app/billing", label: "Billing", icon: CreditCard },
   { href: "/app/downloads", label: "Downloads", icon: Download },
 ];
 
-export function TopNav() {
+export function TopNav({ showAudits = false }: { showAudits?: boolean }) {
   const pathname = usePathname();
+  const nav = NAV.filter((n) => n.href !== "/app/audits" || showAudits);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border-subtle bg-neutral-bg1/80 backdrop-blur-md">
@@ -43,7 +44,7 @@ export function TopNav() {
 
         {/* Section links — always visible, horizontally scrollable on small screens. */}
         <nav className="flex flex-1 items-center gap-1 overflow-x-auto">
-          {NAV.map(({ href, label, icon: Icon, exact }) => {
+          {nav.map(({ href, label, icon: Icon, exact }) => {
             const active = exact ? pathname === href : pathname.startsWith(href);
             return (
               <Link

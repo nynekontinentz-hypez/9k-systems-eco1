@@ -3,9 +3,9 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "9K Systems — one operator, every client",
+  title: "9K Systems — managed IT, run by one operator",
   description:
-    "The control plane for a one-person MSP: client portals, billing, gated deliverables, and a faceless video studio under one roof.",
+    "AI-Rescue audits, done-for-you managed IT retainers, and the MSP platform other one-person MSPs run on. One accountable operator, end to end.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   ),
