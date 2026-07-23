@@ -55,7 +55,17 @@ export async function POST(req: Request) {
       .from("processed_events")
       .insert({ id: event.id, type: event.type });
     if (dupErr) {
-      return NextResponse.json({ received: true, deduped: true });
+      // A unique-violation (23505) means we've already handled this event — ack.
+      // ANY OTHER error (transient DB issue, etc.) must NOT be treated as
+      // "handled": return 500 so Stripe retries rather than silently dropping a
+      // paid event and never granting access.
+      if (dupErr.code === "23505") {
+        return NextResponse.json({ received: true, deduped: true });
+      }
+      return NextResponse.json(
+        { error: "Could not record event; will retry." },
+        { status: 500 },
+      );
     }
   }
 

@@ -19,19 +19,21 @@ export async function hasEntitlement({
   const db = supabaseAdmin();
   if (!db) return false;
 
-  const subjectFilters: string[] = [];
-  if (orgId) subjectFilters.push(`clerk_org_id.eq.${orgId}`);
-  if (userId) subjectFilters.push(`clerk_user_id.eq.${userId}`);
-  if (subjectFilters.length === 0) return false;
-
-  const { data, error } = await db
+  // Scope to a SINGLE tenant — the active org, or (no org) the user — never a
+  // union across tenants (per CLAUDE.md), which would leak paid access across
+  // client contexts. Failing this scope = no access.
+  if (!orgId && !userId) return false;
+  let query = db
     .from("entitlements")
     .select("id, expires_at")
     .eq("sku", sku)
     .eq("status", "active")
-    .or(subjectFilters.join(","))
     .limit(50);
+  query = orgId
+    ? query.eq("clerk_org_id", orgId)
+    : query.eq("clerk_user_id", userId as string).is("clerk_org_id", null);
 
+  const { data, error } = await query;
   if (error || !data) return false;
 
   const now = Date.now();
@@ -86,9 +88,14 @@ export async function grantEntitlement(params: {
   const db = supabaseAdmin();
   if (!db) throw new Error("Supabase not configured; cannot grant entitlement.");
 
+  // Grant to EXACTLY ONE tenant: the active org if present, otherwise the user.
+  // Storing both subjects on one row is what let entitlements match across
+  // tenant contexts — mirror the single-tenant read scoping.
+  const orgScoped = Boolean(params.orgId);
+
   await db.from("entitlements").insert({
-    clerk_user_id: params.userId ?? null,
-    clerk_org_id: params.orgId ?? null,
+    clerk_user_id: orgScoped ? null : params.userId ?? null,
+    clerk_org_id: orgScoped ? params.orgId : null,
     sku: params.sku,
     status: "active",
     source: params.source ?? "stripe",
