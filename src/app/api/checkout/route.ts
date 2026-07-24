@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   const { userId, orgId } = await auth();
   if (!userId) {
     return NextResponse.json(
-      { error: "Sign in to continue.", signInUrl: "/sign-in?redirect_url=/%23pricing" },
+      { error: "Sign in to continue.", signInUrl: "/sign-in?redirect_url=/%23audit" },
       { status: 401 },
     );
   }
