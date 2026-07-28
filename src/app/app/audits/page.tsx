@@ -16,7 +16,7 @@ export default async function AuditsPage() {
   if (!isOperator(userId)) {
     return (
       <>
-        <PageHeader title="Audits" description="AI-Rescue audit workspace." />
+        <PageHeader title="Audits" description="AI Readiness audit workspace." />
         <Card>
           <CardContent className="py-8 text-sm text-text-secondary">
             This area is for the operator only.
@@ -33,7 +33,7 @@ export default async function AuditsPage() {
     <>
       <PageHeader
         title="Audits"
-        description="Track AI-Rescue audits, capture findings, and generate the client report."
+        description="Track AI Readiness audits, capture findings, and generate the client report."
       />
       {!db && (
         <SetupHint title="Connect Supabase to persist audits">

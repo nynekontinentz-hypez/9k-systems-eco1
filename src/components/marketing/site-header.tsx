@@ -17,7 +17,7 @@ export function SiteHeader() {
 
         <nav className="flex items-center gap-4 overflow-x-auto text-sm text-text-secondary sm:gap-6">
           <a href="#audit" className="shrink-0 hover:text-text-primary">
-            AI-Rescue Audit
+            AI Readiness Audit
           </a>
           <a href="#platform" className="shrink-0 hover:text-text-primary">
             Platform

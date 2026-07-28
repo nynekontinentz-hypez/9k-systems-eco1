@@ -41,19 +41,19 @@ export const PRODUCTS: Product[] = [
   // ── AI-Rescue Audit — one-time ($997, live in emails) ────────────────────
   {
     sku: "ai-rescue-audit",
-    name: "AI-Rescue Audit",
+    name: "AI Readiness Audit",
     blurb:
-      "A fixed-scope teardown of a business that moved on AI too fast — what's exposed, what's wasted, and the exact plan to fix it.",
+      "A fixed-scope teardown of a business that moved on AI too fast: 43 checkpoints across 8 domains, one clear report on what's exposed, what's wasted, and what to fix first.",
     priceCents: 99700,
     interval: "one_time",
     group: "audit",
     unlocks: "ai-rescue-audit",
     cta: "Get the audit",
     features: [
-      "Full stack, security, and spend review",
-      "AI-usage risk + data-exposure findings",
-      "Prioritized fix-it plan you can run with or without me",
-      "Delivered as a clear written report",
+      "43 checkpoints across 8 domains",
+      "Shadow-AI + data-exposure findings",
+      "Colorado SB 26-189 readiness check",
+      "Prioritized fix-it plan (keep it, or I run it)",
     ],
   },
 

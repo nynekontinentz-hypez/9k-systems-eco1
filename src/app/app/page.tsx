@@ -62,7 +62,7 @@ export default async function Overview() {
         />
         <QuickLink
           href="/app/audits"
-          title="Run an AI-Rescue Audit"
+          title="Run an AI Readiness Audit"
           body="Track a purchased audit, capture findings, and generate the client report."
         />
       </div>

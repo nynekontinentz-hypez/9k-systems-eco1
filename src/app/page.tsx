@@ -29,19 +29,19 @@ export default function Landing() {
         />
         <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 py-28 text-center">
           <Badge tone="brand">
-            <Zap className="h-3 w-3" /> AI-Rescue · Managed IT · MSP platform
+            <Zap className="h-3 w-3" /> AI Readiness · Managed IT · MSP platform
           </Badge>
           <h1 className="text-4xl font-semibold leading-tight tracking-tight text-text-primary sm:text-6xl">
             {HERO_HEADLINE}
           </h1>
           <p className="max-w-2xl text-lg text-text-secondary">
-            Start with a fixed-scope <span className="text-text-primary">AI-Rescue Audit</span>,
+            Start with a fixed-scope <span className="text-text-primary">AI Readiness Audit</span>,
             retain me to run your IT month to month, or run your own one-person
             MSP on the same platform I use. One operator, accountable end to end.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <a href="#audit" className={buttonVariants({ variant: "brand", size: "lg" })}>
-              Get the AI-Rescue Audit — {audit ? formatUSD(audit.priceCents) : "$997"}
+              Get the AI Readiness Audit — {audit ? formatUSD(audit.priceCents) : "$997"}
               <ArrowRight className="h-4 w-4" />
             </a>
             <a href="#services" className={buttonVariants({ variant: "outline", size: "lg" })}>
@@ -57,7 +57,7 @@ export default function Landing() {
           <div className="grid items-center gap-8 rounded-2xl border border-brand/40 bg-neutral-bg2 p-8 shadow-glow lg:grid-cols-[1.2fr_1fr]">
             <div className="flex flex-col gap-4">
               <span className="flex items-center gap-2 text-sm font-medium text-brand-light">
-                <ShieldCheck className="h-4 w-4" /> AI-Rescue Audit
+                <ShieldCheck className="h-4 w-4" /> AI Readiness Audit
               </span>
               <h2 className="text-3xl font-semibold tracking-tight">
                 Moved fast on AI? Let&apos;s make sure it didn&apos;t break

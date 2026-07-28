@@ -124,7 +124,7 @@ export function AuditWorkspace({ audit }: { audit: Audit }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `ai-rescue-audit-${clientName.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.md`;
+    a.download = `ai-readiness-audit-${clientName.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   }

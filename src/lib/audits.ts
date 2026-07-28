@@ -33,46 +33,92 @@ export type AuditRow = {
   updated_at: string;
 };
 
-/** Seed checklist so a new audit is useful immediately. */
+/**
+ * The AI Readiness Audit instrument: 43 checkpoints across 8 domains.
+ * Seeded on every new audit so the operator has the full instrument ready.
+ */
 const TEMPLATE: Array<{ area: string; items: string[] }> = [
   {
-    area: "Security",
+    area: "AI Inventory & Shadow AI",
     items: [
-      "MFA enforced on all admin accounts",
-      "Backups exist and were tested in the last 90 days",
-      "Endpoint protection deployed on every device",
-      "Exposed secrets / API keys reviewed",
+      "Complete inventory of AI tools in use (sanctioned + unsanctioned)",
+      "Shadow-AI discovery: unapproved tools employees actually use",
+      "Free-tier vs paid-tier data handling reviewed per tool",
+      "AI features enabled inside existing SaaS (Copilot, Gemini, etc.)",
+      "Browser extensions / plugins with AI access identified",
+      "Personal-account AI use on company work identified",
     ],
   },
   {
-    area: "AI usage",
+    area: "Data Exposure & Privacy",
     items: [
-      "Inventory of AI tools actually in use",
-      "Data sent to AI vendors reviewed",
-      "No PII or secrets leaking into prompts",
-      "Access controls on shared AI accounts",
+      "Sensitive data classes defined (PII, PHI, financials, client records)",
+      "Evidence of sensitive data pasted into AI prompts",
+      "Vendor data-retention and training opt-out settings reviewed",
+      "Data residency / location of AI vendors reviewed",
+      "AI tool sub-processor / third-party sharing list obtained",
+      "Prompt logging or DLP controls in place",
     ],
   },
   {
-    area: "Stack",
+    area: "Security & Access",
     items: [
-      "Documented systems + accounts inventory",
-      "Licenses right-sized to real usage",
-      "Shadow IT identified",
+      "MFA enforced on all AI and admin accounts",
+      "Least-privilege access to AI admin consoles",
+      "API keys / tokens for AI services inventoried and rotated",
+      "Endpoint protection covers AI-tool usage",
+      "Offboarding revokes AI access",
+      "Incident response covers an AI data-leak scenario",
     ],
   },
   {
-    area: "Spend",
+    area: "Governance & Policy",
     items: [
-      "Recurring SaaS audited for waste",
-      "Duplicate / overlapping tools consolidated",
+      "Written acceptable-use AI policy exists",
+      "Employees trained on and acknowledged the policy",
+      "Approval process for adopting new AI tools",
+      "Named owner accountable for AI risk",
+      "Human-in-the-loop rules for consequential decisions",
     ],
   },
   {
-    area: "Data",
+    area: "Compliance & Regulation",
     items: [
-      "Data retention + deletion policy exists",
-      "Least-privilege access review done",
+      "Colorado SB 26-189 exposure assessed (ADMT in hiring, lending, etc.)",
+      "Disclosure duties mapped ahead of Jan 1, 2027",
+      "Industry rules checked (HIPAA, GLBA, etc. where relevant)",
+      "Consumer-facing AI disclosures reviewed",
+      "Record-keeping for automated decisions in place",
+    ],
+  },
+  {
+    area: "Spend & ROI",
+    items: [
+      "All AI subscriptions inventoried with cost",
+      "Duplicate / overlapping AI tools identified",
+      "Underused or abandoned AI licenses flagged",
+      "Cost-per-outcome vs the manual baseline",
+      "Contract terms and auto-renewals reviewed",
+    ],
+  },
+  {
+    area: "Reliability & Accuracy",
+    items: [
+      "Known failure modes of deployed AI documented",
+      "Accuracy / hallucination checks for customer-facing AI",
+      "Fallback path when AI is wrong or unavailable",
+      "Testing before AI touches a production workflow",
+      "Monitoring and logging of AI outputs",
+    ],
+  },
+  {
+    area: "Vendor & Integration",
+    items: [
+      "AI vendor security posture reviewed (SOC 2, etc.)",
+      "Integration scopes / OAuth permissions reviewed",
+      "Data flows between AI tools and core systems mapped",
+      "Export / backup path if a vendor is dropped",
+      "SLA and support terms for business-critical AI",
     ],
   },
 ];
@@ -210,7 +256,7 @@ export function composeReport(a: AuditRow): string {
   const areas = Array.from(new Set(a.findings.map((f) => f.area)));
 
   const lines: string[] = [];
-  lines.push(`# AI-Rescue Audit — ${a.client_name}`);
+  lines.push(`# AI Readiness Audit — ${a.client_name}`);
   lines.push(`_Prepared by 9K Systems · ${shortDate(new Date().toISOString())}_`);
   lines.push("");
   lines.push("## Summary");
