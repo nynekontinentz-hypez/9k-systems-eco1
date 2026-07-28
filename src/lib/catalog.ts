@@ -6,14 +6,11 @@
  *                 (these buyers get their own client console login).
  *  - "retainer" : retain the operator to run a business's IT (serviced by the
  *                 operator; no self-serve login required).
- *  - "audit"    : the one-time AI-Rescue Audit.
+ *  - "audit"    : the one-time AI Readiness Audit.
  *
- * NOTE: prices are placeholders except the AI-Rescue Audit ($997), which is
- * already live in outbound emails — do not change it without updating those.
- *
- * Checkout works two ways: if `stripePriceId` is set (recommended for
- * production) it is used directly; otherwise Stripe Checkout is created from
- * inline `price_data`.
+ * NOTE: the audit is $997 and live in outbound emails — do not change it
+ * without updating those. Stripe Price ids below are LIVE-mode prices created
+ * 2026-07-28; if a price changes, create a new Stripe Price and re-pin.
  */
 
 export type BillingInterval = "one_time" | "month";
@@ -38,9 +35,10 @@ export type Product = {
 };
 
 export const PRODUCTS: Product[] = [
-  // ── AI-Rescue Audit — one-time ($997, live in emails) ────────────────────
+  // ── AI Readiness Audit — one-time ($997, live in emails) ─────────────────
   {
     sku: "ai-rescue-audit",
+    stripePriceId: "price_1Ty4RnLYpCU77YZrZcQvEsiP",
     name: "AI Readiness Audit",
     blurb:
       "A fixed-scope teardown of a business that moved on AI too fast: 43 checkpoints across 8 domains, one clear report on what's exposed, what's wasted, and what to fix first.",
@@ -60,6 +58,7 @@ export const PRODUCTS: Product[] = [
   // ── MSP platform — for other one-person MSP owners ───────────────────────
   {
     sku: "platform-solo",
+    stripePriceId: "price_1Ty4RoLYpCU77YZrgOVxeSy9",
     name: "Platform · Solo",
     blurb:
       "Run your one-person MSP on the same control plane I use — client workspaces, billing, and deliverables behind one login.",
@@ -77,6 +76,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "platform-pro",
+    stripePriceId: "price_1Ty4RoLYpCU77YZrSoEtxxbK",
     name: "Platform · Pro",
     blurb:
       "Everything in Solo with room to scale — more clients, priority support, and early access to new modules.",
@@ -97,6 +97,7 @@ export const PRODUCTS: Product[] = [
   // ── Retain me — done-for-you IT (serviced by the operator) ───────────────
   {
     sku: "essential-care",
+    stripePriceId: "price_1Ty4RpLYpCU77YZrhuOdlpJn",
     name: "Essential Care",
     blurb:
       "Patching, backups, monitoring, and a human who picks up. For SMBs that just need IT handled.",
@@ -114,6 +115,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "growth-ops",
+    stripePriceId: "price_1Ty4RpLYpCU77YZrxAZnCiLf",
     name: "Growth Ops",
     blurb:
       "Everything in Essential Care plus roadmap work, automation builds, and priority response. For teams that are scaling.",
@@ -132,6 +134,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "total-ops",
+    stripePriceId: "price_1Ty4RpLYpCU77YZrhNCl0xkw",
     name: "Total Ops",
     blurb:
       "Fractional IT leadership — strategy, security, and hands-on execution across your whole stack.",

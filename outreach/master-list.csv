@@ -1,0 +1,16 @@
+tier,score,company,contact,role,vertical,hook,compliance_angle,email,linkedin,dnc,notes
+HOT,8,Financial Talent Group,Melissa Scruggs,Founder,Finance recruiting/staffing,Double finalist PPSBW 2026 (Champion + Micro Business),Employment = SB 26-189 covered sector; AI resume screens = ADMT,Verify pass 2,Verify pass 2,,Recruiting = highest SB 26-189 exposure; likely uses ATS/AI screening
+HOT,8,Lokiten Behavioral Health,James Garofalo,Owner,Behavioral health,Veteran-Owned finalist PPSBW 2026,Healthcare ADMT + HB 26-1263 chatbot/therapy rules (eff Jan 1 2027),Verify pass 2,Verify pass 2,,Chatbot Safety Act directly targets therapy-adjacent AI; strong urgency
+HOT,7,Bob Penkhus,Sevan Stryker,Leadership (family),Auto dealer group,Family-Owned Small Business of the Year WINNER 2026,Auto financing = lending (covered); dealer AI chat/lead tools ubiquitous,Verify pass 2,Verify pass 2,,Winner = strongest warm hook; multi-rooftop = real budget
+WARM,6,Smith Plumbing and Heating,Eva Robinson,Family leadership,Trades (plumbing/HVAC),Family-Owned finalist PPSBW 2026,Booking/dispatch automation + shadow-AI in office ops,Verify pass 2,Verify pass 2,,Large local trades outfit; automation ROI angle over compliance
+WARM,6,The Lighthouse Early Care and Education,Jackie Lujan,Owner,Childcare/education,Small Business Person finalist PPSBW 2026,Education = covered sector; enrollment/records + minors data,Verify pass 2,Verify pass 2,,Childcare + minors data = sensitive; compliance-framed touch
+WARM,5,Bellona Financial Solutions,Adelmarie Rivera,Owner,Financial services,Veteran-Owned finalist PPSBW 2026,Lending/insurance adjacent = covered sector,Verify pass 2,Verify pass 2,,Verify which financial services; if lending-adjacent goes HOT
+WARM,5,Apache Electric,Fred Ramirez,Owner,Trades (electrical),Small Business Person finalist PPSBW 2026,Automation/intake + spend angle,Verify pass 2,Verify pass 2,,Trades audience per positioning
+VERIFY,4,Gormai / EventFlow / Talarico Ventures,Sam Talarico,Founder,Tech ventures,Young Entrepreneur finalist PPSBW 2026,May BUILD AI -> partner column not prospect,Verify pass 2,Verify pass 2,,Verify: if AI builder move to partner list
+COLD,3,Angler's Covey,David Leinweber,Owner,Retail/outdoor,Family-Owned finalist PPSBW 2026,Retail ops/POS + shadow AI,Verify pass 2,Verify pass 2,,Low urgency; nurture via content
+COLD,3,LINE-X of Co Springs,Logan Bryson,Owner,Auto services,Young Entrepreneur finalist PPSBW 2026,Intake/booking automation,Verify pass 2,Verify pass 2,,
+COLD,2,Good Intentions,Kelsee Swenn,Owner,Verify pass 2,Young Entrepreneur finalist PPSBW 2026,Verify vertical first,Verify pass 2,Verify pass 2,,
+COLD,2,Valor Archery Challenge,Sam Westfall,Owner,Recreation,Veteran-Owned finalist PPSBW 2026,Booking automation,Verify pass 2,Verify pass 2,,Veteran-to-veteran angle if Nyne applicable
+EXCLUDE,-,Amnet (Trevor Dierdorff),Trevor Dierdorff,CEO,MSP,Champion finalist 2026,,,,X,Standing exclusion: competitor MSP
+PARTNER,-,The Automators,Verify pass 2,,AI agency COS,Local AI implementation agency,,Verify pass 2,Verify pass 2,,Partner/referral column not prospect
+PARTNER,-,Colonel Mustard's Sandwich Emporium,Karene Williams,Owner,Food,Micro Business finalist,,,,X,Skip: not ICP
