@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { ClerkProvider } from "@clerk/nextjs";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default function RootLayout({
       <html lang="en" className="h-full antialiased">
         <body className="min-h-full bg-neutral-bg1 text-text-primary">
           {children}
+          <SpeedInsights />
           {/* Vercel Web Analytics (no npm dep). Enable Analytics on the Vercel
               project so /_vercel/insights/* is served and data shows up. */}
           <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
