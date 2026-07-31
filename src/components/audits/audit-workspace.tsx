@@ -11,8 +11,9 @@ import {
   Plus,
   FileText,
   Download,
+  Printer,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
@@ -283,9 +284,18 @@ export function AuditWorkspace({ audit }: { audit: Audit }) {
               {report ? "Regenerate" : "Generate"}
             </Button>
             {report && (
-              <Button size="sm" variant="outline" onClick={downloadReport}>
-                <Download className="h-4 w-4" /> .md
-              </Button>
+              <>
+                <Link
+                  href={`/app/audits/${audit.id}/report`}
+                  target="_blank"
+                  className={buttonVariants({ variant: "outline", size: "sm" })}
+                >
+                  <Printer className="h-4 w-4" /> PDF
+                </Link>
+                <Button size="sm" variant="outline" onClick={downloadReport}>
+                  <Download className="h-4 w-4" /> .md
+                </Button>
+              </>
             )}
           </div>
         </CardHeader>
